@@ -4,29 +4,19 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/BurntSushi/toml"
-
-	"gitlab.com/zapirus/shortener/internal/handlers"
+	"gitlab.com/zapirus/shortener/config"
+	"gitlab.com/zapirus/shortener/internal/pkg/app"
 )
-
-var (
-	configPath string
-)
-
-func init() {
-	flag.StringVar(&configPath, "config-paths", "config/config.toml", "")
-}
 
 func main() {
 	flag.Parse()
-	config := handlers.NewConfig()
-	_, err := toml.DecodeFile(configPath, config)
+	conf := config.NewConfig()
+	err := conf.ConfigPars(conf)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	server := handlers.New(config)
-
+	server := app.New(conf)
 	server.Run()
 
 }
