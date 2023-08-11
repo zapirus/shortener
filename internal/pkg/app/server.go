@@ -35,7 +35,6 @@ func (s *APIServer) Run() {
 
 	s.confRouter()
 	log.Printf("Завелись на порту %s", s.config.HTTPAddr)
-	idConnClosed := make(chan struct{})
 	go func() {
 		sigint := make(chan os.Signal, 1)
 		signal.Notify(sigint, os.Interrupt, syscall.SIGTERM)
@@ -45,13 +44,11 @@ func (s *APIServer) Run() {
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Fatalln(err)
 		}
-		close(idConnClosed)
 	}()
 	if err := srv.ListenAndServe(); err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalln(err)
 		}
 	}
-	<-idConnClosed
 	log.Println("Всего доброго!")
 }
