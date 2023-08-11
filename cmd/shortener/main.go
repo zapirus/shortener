@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 
 	"gitlab.com/zapirus/shortener/config"
@@ -9,14 +8,11 @@ import (
 )
 
 func main() {
-	flag.Parse()
-	conf := config.NewConfig()
-	err := conf.ConfigPars(conf)
+	conf, err := config.NewConfig()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	server := app.New(conf)
 	server.Run()
-
 }
