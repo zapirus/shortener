@@ -8,5 +8,4 @@ func Hello() models.GetHello {
 
 func ResponseURL(urlRequest models.ResponseURL) models.ResponseURL {
 	return models.ResponseURL{BeforeURL: "https://" + urlRequest.BeforeURL + ".ru", AfterURL: "https://ya.ru"}
-
 }
