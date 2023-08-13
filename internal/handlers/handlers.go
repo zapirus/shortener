@@ -23,19 +23,19 @@ func GetHello() http.HandlerFunc {
 	}
 }
 
-func ResponseURL() http.HandlerFunc {
+func GetShortUrlHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		var urlRequest models.ResponseURL
+		var urlRequest models.GetShortURLRequest
 		if err := json.NewDecoder(r.Body).Decode(&urlRequest); err != nil {
 			logrus.Printf("Не удалось преобразовать: %s", err)
-			w.WriteHeader(http.StatusConflict)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		urlResponse := service.ResponseURL(urlRequest)
+		urlResponse := service.GetShortUrlHandler(urlRequest)
 		if err := json.NewEncoder(w).Encode(urlResponse); err != nil {
 			log.Printf("Не удалось преобразовать: %s", err)
-			w.WriteHeader(http.StatusConflict)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 	}

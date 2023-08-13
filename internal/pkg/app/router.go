@@ -6,5 +6,5 @@ import (
 
 func (s *APIServer) confRouter() {
 	s.router.HandleFunc("/hello", handlers.GetHello()).Methods("GET")
-	s.router.HandleFunc("/url", handlers.ResponseURL()).Methods("POST")
+	s.router.HandleFunc("/url", handlers.GetShortUrlHandler()).Methods("POST")
 }

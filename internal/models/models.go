@@ -4,7 +4,10 @@ type GetHello struct {
 	Message string `json:"message"`
 }
 
-type ResponseURL struct {
+type GetShortURLRequest struct {
 	BeforeURL string `json:"beforeURL"`
-	AfterURL  string `json:"afterURL"`
+}
+
+type GetShortURLResponse struct {
+	AfterURL string `json:"afterURL"`
 }
