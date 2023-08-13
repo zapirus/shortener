@@ -32,7 +32,7 @@ func GetShortUrlHandler() http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		urlResponse := service.GetShortUrlHandler()
+		urlResponse := service.GetShortUrl()
 		if err := json.NewEncoder(w).Encode(urlResponse); err != nil {
 			log.Printf("Не удалось преобразовать: %s", err)
 			w.WriteHeader(http.StatusBadRequest)
