@@ -1,11 +1,16 @@
 package service
 
-import "gitlab.com/zapirus/shortener/internal/models"
+import (
+	"crypto/sha256"
+	"fmt"
+	"math/rand"
 
-func Hello() models.GetHello {
-	return models.GetHello{Message: "Hello worlds"}
-}
+	"gitlab.com/zapirus/shortener/internal/models"
+)
 
-func GetShortUrl() models.GetShortURLResponse {
-	return models.GetShortURLResponse{AfterURL: "https://ya.ru"}
+func GetShortUrl(beforeURL string) models.GetShortURLResponse {
+	hash := sha256.Sum256([]byte(beforeURL))
+	randValue := rand.Intn(6) + 4
+	result := fmt.Sprintf("%x", hash[:randValue])
+	return models.GetShortURLResponse{AfterURL: result}
 }

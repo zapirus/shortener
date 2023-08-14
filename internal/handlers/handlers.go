@@ -11,18 +11,6 @@ import (
 	"gitlab.com/zapirus/shortener/internal/service"
 )
 
-func GetHello() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		hello := service.Hello()
-		if err := json.NewEncoder(w).Encode(hello); err != nil {
-			log.Printf("Не удалось преобразовать: %s", err)
-			w.WriteHeader(http.StatusConflict)
-			return
-		}
-	}
-}
-
 func GetShortUrlHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -32,7 +20,7 @@ func GetShortUrlHandler() http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		urlResponse := service.GetShortUrl()
+		urlResponse := service.GetShortUrl(urlRequest.BeforeURL)
 		if err := json.NewEncoder(w).Encode(urlResponse); err != nil {
 			log.Printf("Не удалось преобразовать: %s", err)
 			w.WriteHeader(http.StatusBadRequest)
