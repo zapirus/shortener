@@ -51,5 +51,5 @@ jobs:
           # Optional: if set to true, then the action won't cache or restore ~/.cache/go-build.
           # skip-build-cache: true
 
-          # Optional: The mode to install golangci-lint. It can be 'binary' or 'goinstall'.
+          # Optional: The mode to install golangci-lint. It can b 'binary' or 'goinstall'.
           # install-mode: "goinstall"
