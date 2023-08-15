@@ -21,7 +21,7 @@ type Config struct {
 
 func NewConfig() (*Config, error) {
 	config := &Config{
-		HTTPAddr: ":8080",
+		HTTPAddr: ":8020",
 	}
 	flag.Parse()
 	_, err := toml.DecodeFile(configPath, config)

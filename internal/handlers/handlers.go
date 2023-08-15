@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"gitlab.com/zapirus/shortener/internal/models"
@@ -11,39 +10,33 @@ import (
 
 var urlMap = make(map[string]string)
 
-func GetShortUrlHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req models.GetShortURLRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
+func ShortenURLHandler(w http.ResponseWriter, r *http.Request) {
+	var req models.GetShortURLRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-		shortURL := service.GenerateShortUrl(req.BeforeURL)
-		urlMap[shortURL.AfterURL] = req.BeforeURL
+	shortURL := service.GenerateShortUrl(req.BeforeURL)
+	urlMap[shortURL] = req.BeforeURL
 
-		resp := models.GetShortURLResponse{
-			AfterURL: shortURL.AfterURL,
-		}
+	resp := models.GetShortURLResponse{
+		AfterURL: shortURL,
+	}
 
-		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
-func RedirectHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(urlMap)
-		fmt.Println(r.URL.Path)
-		shortURL := r.URL.Path[1:]
-		fullURL, ok := urlMap[shortURL]
-		if !ok {
-			http.NotFound(w, r)
-			return
-		}
-		http.Redirect(w, r, fullURL, http.StatusSeeOther)
+func RedirectHandler(w http.ResponseWriter, r *http.Request) {
+	shortURL := r.URL.Path[1:]
+	fullURL, ok := urlMap[shortURL]
+	if !ok {
+		http.NotFound(w, r)
+		return
 	}
+	http.Redirect(w, r, fullURL, http.StatusSeeOther)
 }

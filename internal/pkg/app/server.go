@@ -10,20 +10,38 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
-
 	"gitlab.com/zapirus/shortener/config"
 )
 
+//type APIServer struct {
+//	config *config.Config
+//	router http.Server
+//}
+//
+//func New(config *config.Config) *APIServer {
+//	return &APIServer{
+//		config: config,
+//		router: http.Server{}
+//	}
+//}
+
 type APIServer struct {
 	config *config.Config
-	router *mux.Router
+	router *http.ServeMux
+	server *http.Server
 }
 
 func New(config *config.Config) *APIServer {
+	router := http.NewServeMux()
+	server := &http.Server{
+		Addr:    config.HTTPAddr,
+		Handler: router,
+	}
+
 	return &APIServer{
 		config: config,
-		router: mux.NewRouter(),
+		router: router,
+		server: server,
 	}
 }
 
