@@ -5,5 +5,6 @@ import (
 )
 
 func (s *APIServer) confRouter() {
-	s.router.HandleFunc("/url", handlers.GetShortUrlHandler()).Methods("POST")
+	s.router.HandleFunc("/short-url/create", handlers.GetShortUrlHandler())
+	s.router.HandleFunc("/", handlers.RedirectHandler())
 }

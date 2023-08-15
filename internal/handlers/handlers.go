@@ -2,29 +2,48 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
-
-	"github.com/sirupsen/logrus"
 
 	"gitlab.com/zapirus/shortener/internal/models"
 	"gitlab.com/zapirus/shortener/internal/service"
 )
 
+var urlMap = make(map[string]string)
+
 func GetShortUrlHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var req models.GetShortURLRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		shortURL := service.GenerateShortUrl(req.BeforeURL)
+		urlMap[shortURL.AfterURL] = req.BeforeURL
+
+		resp := models.GetShortURLResponse{
+			AfterURL: shortURL.AfterURL,
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		var urlRequest models.GetShortURLRequest
-		if err := json.NewDecoder(r.Body).Decode(&urlRequest); err != nil {
-			logrus.Printf("Не удалось преобразовать: %s", err)
-			w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		urlResponse := service.GetShortUrl(urlRequest.BeforeURL)
-		if err := json.NewEncoder(w).Encode(urlResponse); err != nil {
-			log.Printf("Не удалось преобразовать: %s", err)
-			w.WriteHeader(http.StatusBadRequest)
+	}
+}
+
+func RedirectHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println(urlMap)
+		fmt.Println(r.URL.Path)
+		shortURL := r.URL.Path[1:]
+		fullURL, ok := urlMap[shortURL]
+		if !ok {
+			http.NotFound(w, r)
 			return
 		}
+		http.Redirect(w, r, fullURL, http.StatusSeeOther)
 	}
 }
