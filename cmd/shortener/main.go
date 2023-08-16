@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"gitlab.com/zapirus/shortener/config"
 	"gitlab.com/zapirus/shortener/internal/pkg/app"
@@ -10,9 +10,9 @@ import (
 func main() {
 	conf, err := config.NewConfig()
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
+
 	server := app.New(conf)
 	server.Run()
 }
