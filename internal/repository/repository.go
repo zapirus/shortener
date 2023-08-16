@@ -26,7 +26,7 @@ func NewRepository(db *sqlx.DB) (*repository, error) {
 }
 
 func (r *repository) InsertURL(beforeURL, afterURL string) error {
-	query := "INSERT INTO urls (before, after) VALUES (?, ?)"
+	query := "INSERT INTO urls (before, after) VALUES ($1, $2)"
 	_, err := r.db.Exec(query, beforeURL, afterURL)
 	if err != nil {
 		return fmt.Errorf("failed to insert URL: %w", err)
