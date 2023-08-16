@@ -18,18 +18,6 @@ import (
 	"gitlab.com/zapirus/shortener/internal/service"
 )
 
-//type APIServer struct {
-//	config *config.Config
-//	router http.Server
-//}
-//
-//func New(config *config.Config) *APIServer {
-//	return &APIServer{
-//		config: config,
-//		router: http.Server{}
-//	}
-//}
-
 type APIServer struct {
 	config  *config.Config
 	handler handlers.Handler
