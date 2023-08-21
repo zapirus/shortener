@@ -38,14 +38,29 @@ func New(config *config.Config) *APIServer {
 		server: server,
 	}
 }
+
 func (s *APIServer) Run() {
 	srv := &http.Server{
 		Addr:    s.config.HTTPAddr,
 		Handler: s.router,
 	}
 
+	dbConf := s.InitConfig()
+	db, err := repository.NewPostgresDB(dbConf)
+	if err != nil {
+		log.Fatalf("Failed to initialize db: %s", err)
+	}
+	defer db.Close()
+
+	repo, err := repository.NewRepository(db)
+	if err != nil {
+		log.Fatalf("Failed to initialize repos: %s", err)
+	}
+
+	serv := service.NewService(repo)
+	s.handler = *handlers.NewHandler(serv)
+
 	s.confRouter()
-	s.InitConfig()
 	log.Printf("Завелись на порту %s", s.config.HTTPAddr)
 	go func() {
 		sigint := make(chan os.Signal, 1)
@@ -65,8 +80,7 @@ func (s *APIServer) Run() {
 	log.Println("Всего доброго!")
 }
 
-func (s *APIServer) InitConfig() {
-
+func (s *APIServer) InitConfig() repository.PostgresConfig {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error initializing config db: %s", err)
 	}
@@ -80,16 +94,5 @@ func (s *APIServer) InitConfig() {
 		SSLMode:  os.Getenv("DB_SSLMODE"),
 	}
 
-	db, err := repository.NewPostgresDB(dbConfig)
-	if err != nil {
-		log.Fatalf("Failed to initialize db: %s", err)
-	}
-
-	repo, err := repository.NewRepository(db)
-	if err != nil {
-		log.Fatalf("Failed to initialize repos: %s", err)
-	}
-
-	serv := service.NewService(repo)
-	s.handler = *handlers.NewHandler(serv)
+	return dbConfig
 }

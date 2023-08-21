@@ -20,7 +20,6 @@ func NewService(repo repository.Repository) Service {
 
 func (s *Service) GenerateShortURL(beforeURL string) (string, error) {
 	hash := sha256.Sum256([]byte(beforeURL))
-	//rand.Seed(time.Now().UnixNano())
 	randValue := rand.Intn(6) + 4
 	shortURL := fmt.Sprintf("%x", hash[:randValue])
 

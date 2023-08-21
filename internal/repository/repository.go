@@ -20,6 +20,7 @@ func NewRepository(db *sqlx.DB) (*repository, error) {
 	if db == nil {
 		return nil, errors.New("db is nil")
 	}
+
 	return &repository{
 		db: db,
 	}, nil
@@ -31,5 +32,6 @@ func (r *repository) InsertURL(beforeURL, afterURL string) error {
 	if err != nil {
 		return fmt.Errorf("failed to insert URL: %w", err)
 	}
+
 	return nil
 }
