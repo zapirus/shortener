@@ -5,38 +5,53 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/sirupsen/logrus"
-
 	"gitlab.com/zapirus/shortener/internal/models"
 	"gitlab.com/zapirus/shortener/internal/service"
 )
 
-func GetHello() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		hello := service.Hello()
-		if err := json.NewEncoder(w).Encode(hello); err != nil {
-			log.Printf("Не удалось преобразовать: %s", err)
-			w.WriteHeader(http.StatusConflict)
-			return
-		}
+var urlMap = make(map[string]string)
+
+type Handler struct {
+	service service.Service
+}
+
+func NewHandler(service service.Service) *Handler {
+	return &Handler{
+		service: service,
 	}
 }
 
-func GetShortUrlHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		var urlRequest models.GetShortURLRequest
-		if err := json.NewDecoder(r.Body).Decode(&urlRequest); err != nil {
-			logrus.Printf("Не удалось преобразовать: %s", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		urlResponse := service.GetShortUrl()
-		if err := json.NewEncoder(w).Encode(urlResponse); err != nil {
-			log.Printf("Не удалось преобразовать: %s", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
+func (h *Handler) ShortenURLHandler(w http.ResponseWriter, r *http.Request) {
+	var req models.GetShortURLRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+
+	shortURL, err := h.service.GenerateShortURL(req.BeforeURL)
+	if err != nil {
+		log.Fatalf("Failed to generate URL: %s", err)
+	}
+
+	urlMap[shortURL] = req.BeforeURL
+
+	resp := models.GetShortURLResponse{
+		AfterURL: shortURL,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) RedirectHandler(w http.ResponseWriter, r *http.Request) {
+	shortURL := r.URL.Path[1:]
+	fullURL, ok := urlMap[shortURL]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	http.Redirect(w, r, fullURL, http.StatusSeeOther)
 }

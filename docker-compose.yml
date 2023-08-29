@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  postgres:
+    container_name: dbs
+    image: postgres:14.4-alpine
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "ssss444"
+    ports:
+      - "5432:5432"

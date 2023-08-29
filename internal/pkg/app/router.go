@@ -1,10 +1,6 @@
 package app
 
-import (
-	"gitlab.com/zapirus/shortener/internal/handlers"
-)
-
 func (s *APIServer) confRouter() {
-	s.router.HandleFunc("/hello", handlers.GetHello()).Methods("GET")
-	s.router.HandleFunc("/url", handlers.GetShortUrlHandler()).Methods("POST")
+	s.router.HandleFunc("/short-url/create", s.handler.ShortenURLHandler)
+	s.router.HandleFunc("/", s.handler.RedirectHandler)
 }

@@ -1,11 +1,31 @@
 package service
 
-import "gitlab.com/zapirus/shortener/internal/models"
+import (
+	"crypto/sha256"
+	"fmt"
+	"math/rand"
 
-func Hello() models.GetHello {
-	return models.GetHello{Message: "Hello worlds"}
+	"gitlab.com/zapirus/shortener/internal/repository"
+)
+
+type Service struct {
+	repo repository.Repository
 }
 
-func GetShortUrl() models.GetShortURLResponse {
-	return models.GetShortURLResponse{AfterURL: "https://ya.ru"}
+func NewService(repo repository.Repository) Service {
+	return Service{
+		repo: repo,
+	}
+}
+
+func (s *Service) GenerateShortURL(beforeURL string) (string, error) {
+	hash := sha256.Sum256([]byte(beforeURL))
+	randValue := rand.Intn(6) + 4
+	shortURL := fmt.Sprintf("%x", hash[:randValue])
+
+	if err := s.repo.InsertURL(beforeURL, shortURL); err != nil {
+		return "", fmt.Errorf("error inserting URL: %s", err)
+	}
+
+	return shortURL, nil
 }

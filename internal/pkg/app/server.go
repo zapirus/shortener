@@ -10,20 +10,32 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 
 	"gitlab.com/zapirus/shortener/config"
+	"gitlab.com/zapirus/shortener/internal/handlers"
+	"gitlab.com/zapirus/shortener/internal/repository"
+	"gitlab.com/zapirus/shortener/internal/service"
 )
 
 type APIServer struct {
-	config *config.Config
-	router *mux.Router
+	config  *config.Config
+	handler handlers.Handler
+	router  *http.ServeMux
+	server  *http.Server
 }
 
 func New(config *config.Config) *APIServer {
+	router := http.NewServeMux()
+	server := &http.Server{
+		Addr:    config.HTTPAddr,
+		Handler: router,
+	}
+
 	return &APIServer{
 		config: config,
-		router: mux.NewRouter(),
+		router: router,
+		server: server,
 	}
 }
 
@@ -32,6 +44,21 @@ func (s *APIServer) Run() {
 		Addr:    s.config.HTTPAddr,
 		Handler: s.router,
 	}
+
+	dbConf := s.InitConfig()
+	db, err := repository.NewPostgresDB(dbConf)
+	if err != nil {
+		log.Fatalf("Failed to initialize db: %s", err)
+	}
+	defer db.Close()
+
+	repo, err := repository.NewRepository(db)
+	if err != nil {
+		log.Fatalf("Failed to initialize repos: %s", err)
+	}
+
+	serv := service.NewService(repo)
+	s.handler = *handlers.NewHandler(serv)
 
 	s.confRouter()
 	log.Printf("Завелись на порту %s", s.config.HTTPAddr)
@@ -51,4 +78,21 @@ func (s *APIServer) Run() {
 		}
 	}
 	log.Println("Всего доброго!")
+}
+
+func (s *APIServer) InitConfig() repository.PostgresConfig {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error initializing config db: %s", err)
+	}
+
+	dbConfig := repository.PostgresConfig{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		Username: os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DBName:   os.Getenv("DB_NAME"),
+		SSLMode:  os.Getenv("DB_SSLMODE"),
+	}
+
+	return dbConfig
 }
